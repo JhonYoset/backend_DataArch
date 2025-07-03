@@ -1,52 +1,54 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
-
-export enum ProjectStatus {
-  ACTIVE = 'active',
-  COMPLETED = 'completed',
-  ON_HOLD = 'on-hold',
-}
 
 @Entity('projects')
 export class Project {
+  @ApiProperty()
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @ApiProperty()
   @Column()
   name: string;
 
-  @Column({ type: 'text' })
+  @ApiProperty()
+  @Column('text')
   description: string;
 
-  @Column({ type: 'text', default: '' })
+  @ApiProperty()
+  @Column('text', { nullable: true })
   content: string;
 
-  @Column({ type: 'text', array: true, default: [] })
+  @ApiProperty()
+  @Column('text', { array: true, default: '{}' })
   images: string[];
 
-  @Column({ type: 'text', array: true, default: [] })
+  @ApiProperty()
+  @Column('text', { array: true, default: '{}' })
   files: string[];
 
-  @Column({ name: 'team_members', type: 'uuid', array: true, default: [] })
+  @ApiProperty()
+  @Column('text', { array: true, default: '{}', name: 'team_members' })
   teamMembers: string[];
 
-  @Column({
-    type: 'enum',
-    enum: ProjectStatus,
-    default: ProjectStatus.ACTIVE,
-  })
-  status: ProjectStatus;
+  @ApiProperty({ enum: ['active', 'completed', 'on-hold'] })
+  @Column({ type: 'enum', enum: ['active', 'completed', 'on-hold'], default: 'active' })
+  status: 'active' | 'completed' | 'on-hold';
 
+  @ApiProperty()
   @Column({ name: 'created_by', nullable: true })
   createdBy: string;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'created_by' })
   creator: User;
 
+  @ApiProperty()
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
+  @ApiProperty()
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }

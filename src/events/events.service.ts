@@ -1,9 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThanOrEqual } from 'typeorm';
-import { Event, EventType } from './entities/event.entity';
-import { CreateEventDto } from './dto/create-event.dto';
-import { UpdateEventDto } from './dto/update-event.dto';
+import { Event } from './entities/event.entity';
 
 @Injectable()
 export class EventsService {
@@ -12,7 +10,7 @@ export class EventsService {
     private eventsRepository: Repository<Event>,
   ) {}
 
-  async create(createEventDto: CreateEventDto, userId: string): Promise<Event> {
+  async create(createEventDto: Partial<Event>, userId?: string): Promise<Event> {
     const event = this.eventsRepository.create({
       ...createEventDto,
       createdBy: userId,
@@ -23,24 +21,22 @@ export class EventsService {
   async findAll(): Promise<Event[]> {
     return this.eventsRepository.find({
       relations: ['creator'],
-      order: { date: 'ASC' },
+      order: { date: 'ASC', time: 'ASC' },
     });
   }
 
   async findOne(id: string): Promise<Event> {
-    const event = await this.eventsRepository.findOne({
+    const event = await this.eventsRepository.findOne({ 
       where: { id },
       relations: ['creator'],
     });
-    
     if (!event) {
       throw new NotFoundException(`Event with ID ${id} not found`);
     }
-    
     return event;
   }
 
-  async update(id: string, updateEventDto: UpdateEventDto): Promise<Event> {
+  async update(id: string, updateEventDto: Partial<Event>): Promise<Event> {
     await this.eventsRepository.update(id, updateEventDto);
     return this.findOne(id);
   }
@@ -52,50 +48,28 @@ export class EventsService {
     }
   }
 
-  async findUpcoming(): Promise<Event[]> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  async findUpcoming(limit?: number): Promise<Event[]> {
+    const today = new Date().toISOString().split('T')[0];
     
-    return this.eventsRepository.find({
-      where: { date: MoreThanOrEqual(today) },
-      relations: ['creator'],
-      order: { date: 'ASC' },
-    });
-  }
-
-  async findByType(type: string): Promise<Event[]> {
-    return this.eventsRepository.find({
-      where: { type: type as EventType },
-      relations: ['creator'],
-      order: { date: 'ASC' },
-    });
-  }
-
-  async findByDateRange(startDate: Date, endDate: Date): Promise<Event[]> {
-    return this.eventsRepository
+    const queryBuilder = this.eventsRepository
       .createQueryBuilder('event')
       .leftJoinAndSelect('event.creator', 'creator')
-      .where('event.date >= :startDate', { startDate })
-      .andWhere('event.date <= :endDate', { endDate })
+      .where('event.date >= :today', { today })
       .orderBy('event.date', 'ASC')
-      .getMany();
+      .addOrderBy('event.time', 'ASC');
+
+    if (limit) {
+      queryBuilder.take(limit);
+    }
+
+    return queryBuilder.getMany();
   }
 
-  async getEventStats(): Promise<any> {
-    const total = await this.eventsRepository.count();
-    const upcoming = await this.eventsRepository.count({
-      where: { date: MoreThanOrEqual(new Date()) },
+  async findByType(type: 'meeting' | 'deadline' | 'conference' | 'other'): Promise<Event[]> {
+    return this.eventsRepository.find({
+      where: { type },
+      relations: ['creator'],
+      order: { date: 'ASC', time: 'ASC' },
     });
-    const meetings = await this.eventsRepository.count({ where: { type: EventType.MEETING } });
-    const deadlines = await this.eventsRepository.count({ where: { type: EventType.DEADLINE } });
-    const conferences = await this.eventsRepository.count({ where: { type: EventType.CONFERENCE } });
-
-    return {
-      total,
-      upcoming,
-      meetings,
-      deadlines,
-      conferences,
-    };
   }
 }

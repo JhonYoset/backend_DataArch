@@ -1,8 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { TeamMembersService } from './team-members.service';
-import { CreateTeamMemberDto } from './dto/create-team-member.dto';
-import { UpdateTeamMemberDto } from './dto/update-team-member.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
 
@@ -14,8 +12,8 @@ export class TeamMembersController {
   @Post()
   @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create a new team member (Admin only)' })
-  create(@Body() createTeamMemberDto: CreateTeamMemberDto) {
+  @ApiOperation({ summary: 'Create team member (Admin only)' })
+  create(@Body() createTeamMemberDto: any) {
     return this.teamMembersService.create(createTeamMemberDto);
   }
 
@@ -35,7 +33,7 @@ export class TeamMembersController {
   @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update team member (Admin only)' })
-  update(@Param('id') id: string, @Body() updateTeamMemberDto: UpdateTeamMemberDto) {
+  update(@Param('id') id: string, @Body() updateTeamMemberDto: any) {
     return this.teamMembersService.update(id, updateTeamMemberDto);
   }
 

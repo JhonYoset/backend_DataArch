@@ -1,48 +1,53 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity('team_members')
 export class TeamMember {
+  @ApiProperty()
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'user_id', nullable: true })
-  userId: string;
-
-  @OneToOne(() => User, user => user.teamMember)
-  @JoinColumn({ name: 'user_id' })
-  user: User;
-
+  @ApiProperty()
   @Column()
   name: string;
 
+  @ApiProperty()
   @Column()
   role: string;
 
-  @Column({ type: 'text', default: '' })
+  @ApiProperty()
+  @Column('text')
   bio: string;
 
+  @ApiProperty()
   @Column({ name: 'avatar_url', nullable: true })
   avatarUrl: string;
 
-  @Column({ name: 'research_areas', type: 'text', array: true, default: [] })
+  @ApiProperty()
+  @Column('text', { array: true, default: '{}', name: 'research_areas' })
   researchAreas: string[];
 
+  @ApiProperty()
   @Column({ name: 'github_url', nullable: true })
   githubUrl: string;
 
+  @ApiProperty()
   @Column({ name: 'linkedin_url', nullable: true })
   linkedinUrl: string;
 
+  @ApiProperty()
   @Column({ nullable: true })
   email: string;
 
+  @ApiProperty()
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
 
+  @ApiProperty()
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
+  @ApiProperty()
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }

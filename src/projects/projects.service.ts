@@ -1,9 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Project, ProjectStatus } from './entities/project.entity';
-import { CreateProjectDto } from './dto/create-project.dto';
-import { UpdateProjectDto } from './dto/update-project.dto';
+import { Project } from './entities/project.entity';
 
 @Injectable()
 export class ProjectsService {
@@ -12,18 +10,11 @@ export class ProjectsService {
     private projectsRepository: Repository<Project>,
   ) {}
 
-  async create(createProjectDto: CreateProjectDto, userId: string): Promise<Project> {
+  async create(createProjectDto: Partial<Project>, userId?: string): Promise<Project> {
     const project = this.projectsRepository.create({
-      name: createProjectDto.name,
-      description: createProjectDto.description,
-      content: createProjectDto.content || '',
-      images: createProjectDto.images || [],
-      files: createProjectDto.files || [],
-      teamMembers: createProjectDto.teamMembers || [],
-      status: createProjectDto.status || ProjectStatus.ACTIVE,
+      ...createProjectDto,
       createdBy: userId,
     });
-    
     return this.projectsRepository.save(project);
   }
 
@@ -35,30 +26,18 @@ export class ProjectsService {
   }
 
   async findOne(id: string): Promise<Project> {
-    const project = await this.projectsRepository.findOne({
+    const project = await this.projectsRepository.findOne({ 
       where: { id },
       relations: ['creator'],
     });
-    
     if (!project) {
       throw new NotFoundException(`Project with ID ${id} not found`);
     }
-    
     return project;
   }
 
-  async update(id: string, updateProjectDto: UpdateProjectDto): Promise<Project> {
-    const updateData: any = {};
-    
-    if (updateProjectDto.name !== undefined) updateData.name = updateProjectDto.name;
-    if (updateProjectDto.description !== undefined) updateData.description = updateProjectDto.description;
-    if (updateProjectDto.content !== undefined) updateData.content = updateProjectDto.content;
-    if (updateProjectDto.images !== undefined) updateData.images = updateProjectDto.images;
-    if (updateProjectDto.files !== undefined) updateData.files = updateProjectDto.files;
-    if (updateProjectDto.teamMembers !== undefined) updateData.teamMembers = updateProjectDto.teamMembers;
-    if (updateProjectDto.status !== undefined) updateData.status = updateProjectDto.status;
-
-    await this.projectsRepository.update(id, updateData);
+  async update(id: string, updateProjectDto: Partial<Project>): Promise<Project> {
+    await this.projectsRepository.update(id, updateProjectDto);
     return this.findOne(id);
   }
 
@@ -69,31 +48,11 @@ export class ProjectsService {
     }
   }
 
-  async findByStatus(status: string): Promise<Project[]> {
+  async findByStatus(status: 'active' | 'completed' | 'on-hold'): Promise<Project[]> {
     return this.projectsRepository.find({
-      where: { status: status as ProjectStatus },
+      where: { status },
       relations: ['creator'],
       order: { createdAt: 'DESC' },
     });
-  }
-
-  async getProjectStats(): Promise<any> {
-    const total = await this.projectsRepository.count();
-    const active = await this.projectsRepository.count({ 
-      where: { status: ProjectStatus.ACTIVE } 
-    });
-    const completed = await this.projectsRepository.count({ 
-      where: { status: ProjectStatus.COMPLETED } 
-    });
-    const onHold = await this.projectsRepository.count({ 
-      where: { status: ProjectStatus.ON_HOLD } 
-    });
-
-    return {
-      total,
-      active,
-      completed,
-      onHold,
-    };
   }
 }
