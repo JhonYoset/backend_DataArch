@@ -28,4 +28,4 @@ package-lock.json
 package.json
 .env.example
 .env.production
-.env
+.env.*

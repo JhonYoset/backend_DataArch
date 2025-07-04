@@ -21,7 +21,7 @@ export class Event {
   date: string;
 
   @ApiProperty()
-  @Column({ type: 'time' })
+  @Column({ type: 'time', default: '09:00:00' })
   time: string;
 
   @ApiProperty()

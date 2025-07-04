@@ -2,23 +2,29 @@
   "version": 2,
   "builds": [
     {
-      "src": "src/main.ts",
-      "use": "@vercel/node"
+      "src": "dist/main.js",
+      "use": "@vercel/node",
+      "config": {
+        "maxLambdaSize": "50mb"
+      }
     }
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "dist/main.js"
+    },
+    {
       "src": "/(.*)",
-      "dest": "src/main.ts",
-      "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
+      "dest": "dist/main.js"
     }
   ],
   "env": {
-    "DATABASE_URL": "@database_url",
-    "JWT_SECRET": "@jwt_secret",
-    "GOOGLE_CLIENT_ID": "@google_client_id",
-    "GOOGLE_CLIENT_SECRET": "@google_client_secret",
-    "FRONTEND_URL": "@frontend_url",
     "NODE_ENV": "production"
+  },
+  "functions": {
+    "dist/main.js": {
+      "maxDuration": 30
+    }
   }
 }
