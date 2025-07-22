@@ -87,9 +87,9 @@ export class SeedService implements OnModuleInit {
 
   private async seedUsers() {
     const adminUser = this.usersRepository.create({
-      email: 'admin@dataarchlabs.com',
-      googleId: 'admin-google-id-123',
-      fullName: 'Data Arch Labs Administrator',
+      email: process.env.ADMIN_API_EMAIL,
+      googleId: process.env.ADMIN_API_GOOGLE_ID,
+      fullName: process.env.ADMIN_API_FULL_NAME,
       role: 'admin',
       isActive: true,
     });

@@ -17,6 +17,12 @@ async function bootstrap() {
         : ['error', 'warn', 'log', 'debug', 'verbose'],
     });
 
+    // Obtener instancia de Express
+    const expressApp = app.getHttpAdapter().getInstance();
+
+    // Habilitar trust proxy
+    expressApp.set('trust proxy', true); 
+
     // Security middleware
     app.use(helmet({
       contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
